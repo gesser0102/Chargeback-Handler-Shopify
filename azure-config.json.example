@@ -1,0 +1,8 @@
+{
+  "functionAppName": "your-function-app-name",
+  "resourceGroup": "your-resource-group-name",
+  "location": "eastus",
+  "runtime": "node",
+  "runtimeVersion": "18",
+  "functionsVersion": "4"
+} 

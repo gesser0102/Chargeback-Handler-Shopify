@@ -1,0 +1,43 @@
+{
+  "name": "chargeback-webhook-azure-function",
+  "version": "1.0.0",
+  "description": "Azure Functions webhook handler for Shopify chargeback disputes",
+  "main": "dist/ChargebackWebhook/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "func start",
+    "dev": "func start",
+    "test": "echo \"No tests specified\" && exit 0",
+    "clean": "rimraf dist",
+    "prebuild": "pnpm run clean",
+    "postinstall": "pnpm run build",
+    "install-deps": "pnpm install",
+    "watch": "tsc -w",
+    "prestart": "pnpm run build"
+  },
+  "keywords": [
+    "azure-functions",
+    "shopify",
+    "webhook",
+    "chargeback",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/functions": "4.7.2",
+    "@slack/web-api": "^7.9.3",
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
+    "mysql2": "^3.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad"
+}

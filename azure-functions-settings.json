@@ -1,0 +1,30 @@
+{
+  "runtime": "node",
+  "version": "~4",
+  "managedDependency": {
+    "enabled": true
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
+  "functionTimeout": "00:05:00",
+  "singleton": {
+    "lockPeriod": "00:00:30",
+    "listenerLockPeriod": "00:00:30"
+  },
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    },
+    "logLevel": {
+      "default": "Information",
+      "Host.Results": "Error",
+      "Function": "Information",
+      "Host.Aggregator": "Information"
+    }
+  }
+} 

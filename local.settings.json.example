@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "SHOPIFY_WEBHOOK_SECRET": "your_shopify_webhook_secret_here",
+    "SHOPIFY_SHOP_DOMAIN": "your-shop.myshopify.com",
+    "SHOPIFY_ACCESS_TOKEN": "your_shopify_access_token_here",
+    "SLACK_BOT_TOKEN": "xoxb-your-slack-bot-token",
+    "SLACK_CHANNEL_ID": "C-your-channel-id",
+    "DB_HOST": "your-database-host",
+    "DB_PORT": "your-database-port",
+    "DB_USER": "your-database-user",
+    "DB_PASSWORD": "your-database-password",
+    "DB_DATABASE": "your-database-name"
+  }
+} 

@@ -1,0 +1,49 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": "$tsc"
+		},
+		{
+			"type": "npm",
+			"script": "clean",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Deploy to Azure Functions",
+			"type": "shell",
+			"command": "func",
+			"args": [
+				"azure",
+				"functionapp",
+				"publish",
+				"dgftribe",
+				"--build",
+				"remote"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"dependsOn": "npm: build"
+		}
+	]
+}

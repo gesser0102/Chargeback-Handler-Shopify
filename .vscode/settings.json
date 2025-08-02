@@ -1,0 +1,10 @@
+{
+  "azureFunctions.deployOnSave": false,
+  "azureFunctions.scmDoBuildDuringDeployment": true,
+  "azureFunctions.preDeployTask": "npm: build",
+  "azureFunctions.postDeployTask": "npm: clean",
+  "azureFunctions.deploySubpath": ".",
+  "azureFunctions.pythonVenv": "",
+  "azureFunctions.projectLanguage": "TypeScript",
+  "azureFunctions.projectRuntime": "~4"
+}

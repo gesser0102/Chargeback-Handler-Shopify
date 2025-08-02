@@ -1,0 +1,19 @@
+{
+  "functionAppName": "your-function-app-name",
+  "resourceGroup": "your-resourceGroup",
+  "location": "eastus",
+  "runtime": "node",
+  "runtimeVersion": "18",
+  "functionsVersion": "4",
+  "buildSettings": {
+    "buildRemote": true,
+    "buildNativeDeps": false,
+    "preBuildCommand": "pnpm install && pnpm run build",
+    "postBuildCommand": ""
+  },
+  "deploySettings": {
+    "clean": true,
+    "force": false,
+    "buildRemote": true
+  }
+} 

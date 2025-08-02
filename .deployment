@@ -1,0 +1,2 @@
+[config]
+command = pnpm install && pnpm run build 
