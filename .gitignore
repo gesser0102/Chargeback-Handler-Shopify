@@ -100,6 +100,7 @@ __azurite_db*__.json
 
 # Credenciais e configurações sensíveis
 local.settings.json
+local.settings.dev.json
 azure-config.json
 *.env
 .env.*
