@@ -1,6 +1,6 @@
 import { app } from "@azure/functions";
 import type { HttpRequest, HttpResponseInit, InvocationContext } from "../types/azure";
-import { validateShopifyWebhook } from "../utils/webhookValidator";
+import { validateShopifyWebhook, validateChargebackWebhook, validateShopDomain, getWebhookInfo } from "../utils/webhookValidator";
 import { ChargebackService } from "../services/chargebackService";
 import { DatabaseService } from "../services/databaseService";
 import { SlackService } from "../services/slackService";
@@ -33,12 +33,12 @@ app.http('chargeback', {
             // Validar assinatura do webhook
             const isValid = await validateShopifyWebhook(request, body);
             if (!isValid) {
-                context.log('❌ Assinatura do webhook inválida');
+                context.log('❌ Invalid webhook signature');
                 
                 // Persistir erro de assinatura inválida
                 await persistError(databaseService, {
                     http_code: 401,
-                    error_message: 'Assinatura do webhook inválida',
+                    error_message: 'Invalid webhook signature',
                     error_type: 'InvalidSignature',
                     function_name: 'ChargebackWebhook.handler',
                     environment: getEnvironment(request)
@@ -53,6 +53,50 @@ app.http('chargeback', {
                 return { status: 401, body: 'Unauthorized' };
             }
 
+            // Validar tipo de webhook (chargeback)
+            const isChargebackWebhook = validateChargebackWebhook(request);
+            if (!isChargebackWebhook) {
+                context.log('❌ Webhook is not a chargeback type');
+                
+                // Persistir erro de tipo não suportado
+                await persistError(databaseService, {
+                    http_code: 400,
+                    error_message: 'Webhook is not a chargeback type',
+                    error_type: 'UnsupportedWebhookType',
+                    function_name: 'ChargebackWebhook.handler',
+                    environment: getEnvironment(request)
+                });
+
+                return { status: 400, body: 'Unsupported webhook type' };
+            }
+
+            // Validar shop domain
+            const isValidDomain = validateShopDomain(request);
+            if (!isValidDomain) {
+                context.log('❌ Invalid shop domain');
+                
+                // Persistir erro de domain inválido
+                await persistError(databaseService, {
+                    http_code: 403,
+                    error_message: 'Invalid shop domain',
+                    error_type: 'InvalidShopDomain',
+                    function_name: 'ChargebackWebhook.handler',
+                    environment: getEnvironment(request)
+                });
+
+                return { status: 403, body: 'Forbidden' };
+            }
+
+            // Log das informações do webhook
+            const webhookInfo = getWebhookInfo(request);
+            context.log(`📋 Webhook Info:`);
+            context.log(`   Shop: ${webhookInfo.shopDomain}`);
+            context.log(`   Topic: ${webhookInfo.topic}`);
+            context.log(`   API Version: ${webhookInfo.apiVersion}`);
+            context.log(`   Webhook ID: ${webhookInfo.webhookId}`);
+            context.log(`   Event ID: ${webhookInfo.eventId}`);
+            context.log(`   Triggered At: ${webhookInfo.triggeredAt}`);
+
             // Parse do JSON usando o corpo já lido
             let dispute: ShopifyDispute;
             try {
@@ -63,7 +107,7 @@ app.http('chargeback', {
                 // Persistir erro de parsing com dados sanitizados
                 await persistError(databaseService, {
                     http_code: 400,
-                    error_message: `Erro ao fazer parse do JSON: ${parseError.message}`,
+                    error_message: `JSON parse error: ${parseError.message}`,
                     error_type: 'JSONParseError',
                     function_name: 'ChargebackWebhook.handler',
                     request_data: sanitizeRequestData(body),
@@ -86,17 +130,17 @@ app.http('chargeback', {
             context.log(`📊 Status: ${dispute.status}`);
             context.log(`🏷️ Tipo: ${dispute.type}`);
             context.log(`📅 Criado em: ${dispute.created_at}`);
-            context.log(`🔢 Código da rede: ${dispute.network_reason_code}`);
-            context.log(`⏰ Evidência deve ser enviada até: ${dispute.evidence_due_by}`);
+            context.log(`🔢 Network reason code: ${dispute.network_reason_code}`);
+            context.log(`⏰ Evidence due by: ${dispute.evidence_due_by}`);
 
             // Verificar se é um chargeback
             if (dispute.type !== 'chargeback') {
-                context.log(`⚠️ Tipo não suportado: ${dispute.type}`);
+                context.log(`⚠️ Unsupported type: ${dispute.type}`);
                 
                 // Persistir erro de tipo não suportado
                 await persistError(databaseService, {
                     http_code: 400,
-                    error_message: `Tipo de dispute não suportado: ${dispute.type}`,
+                    error_message: `Unsupported dispute type: ${dispute.type}`,
                     error_type: 'UnsupportedDisputeType',
                     function_name: 'ChargebackWebhook.handler',
                     dispute_id: dispute.id,
@@ -110,7 +154,7 @@ app.http('chargeback', {
                     `Unsupported dispute type: ${dispute.type}`
                 );
                 
-                return { status: 400, body: 'Tipo de dispute não suportado' };
+                return { status: 400, body: 'Unsupported dispute type' };
             }
 
             // Processar chargeback com persistência no banco
@@ -118,7 +162,7 @@ app.http('chargeback', {
 
             if (result.success) {
                 context.log('✅ Chargeback processado com sucesso');
-                return { status: 200, body: 'Webhook processado com sucesso' };
+                return { status: 200, body: 'Webhook processed successfully' };
             } else {
                 context.log(`❌ Falha ao processar chargeback: ${result.message}`);
                 
@@ -130,7 +174,7 @@ app.http('chargeback', {
                 // Para outros erros, persistir e enviar para o Slack
                 await persistError(databaseService, {
                     http_code: result.statusCode || 500,
-                    error_message: result.message || 'Falha ao processar chargeback',
+                    error_message: result.message || 'Failed to process chargeback',
                     error_type: 'ProcessingError',
                     function_name: 'ChargebackWebhook.handler',
                     dispute_id: dispute.id,
@@ -144,7 +188,7 @@ app.http('chargeback', {
                     'Failed to process chargeback'
                 );
                 
-                return { status: result.statusCode || 500, body: result.message || 'Erro interno do servidor' };
+                return { status: result.statusCode || 500, body: result.message || 'Internal server error' };
             }
 
         } catch (error: any) {
@@ -174,7 +218,7 @@ app.http('chargeback', {
                 context.error('❌ Erro ao fechar conexão com banco:', dbError);
             }
             
-            return { status: 500, body: 'Erro interno do servidor' };
+            return { status: 500, body: 'Internal server error' };
         }
     }
 });
@@ -187,12 +231,12 @@ async function persistError(databaseService: DatabaseService, errorData: any): P
         const dbAvailable = await databaseService.testConnection();
         if (dbAvailable) {
             await databaseService.insertErrorRecord(errorData);
-            console.log('✅ Erro persistido no banco');
+            console.log('✅ Error persisted in database');
         } else {
-            console.log('⚠️ Banco não disponível - erro não persistido');
+            console.log('⚠️ Database not available - error not persisted');
         }
     } catch (dbError) {
-        console.error('❌ Erro ao persistir erro no banco:', dbError);
+        console.error('❌ Error persisting error in database:', dbError);
     }
 }
 
@@ -228,7 +272,7 @@ app.http('status', {
         const databaseService = new DatabaseService();
         
         try {
-            context.log('📊 Status check iniciado');
+            context.log('📊 Status check started');
 
             // Log das informações de ambiente
             logEnvironmentInfo(request, context);
@@ -281,7 +325,7 @@ app.http('status', {
                 statusResponse.metrics = metrics;
                 
             } catch (dbError: any) {
-                context.log('❌ Erro na conexão com banco:', dbError.message);
+                context.log('❌ Database connection error:', dbError.message);
                 statusResponse.services.database = {
                     status: 'error',
                     message: dbError.message
@@ -289,7 +333,7 @@ app.http('status', {
                 statusResponse.status = 'degraded';
             }
 
-            context.log('✅ Status check concluído');
+            context.log('✅ Status check completed');
             
             return {
                 status: 200,

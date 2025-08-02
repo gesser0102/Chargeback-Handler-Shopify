@@ -34,14 +34,14 @@ export class ChargebackService {
               if (!this.dbAvailable) {
           this.dbAvailable = await this.databaseService.testConnection();
           if (!this.dbAvailable) {
-            Logger.warn('Banco de dados não disponível - continuando sem persistência');
+            Logger.warn('Database not available - continuing without persistence');
           }
         }
 
       // Obter dados da order
       const order = await this.shopifyService.getOrder(dispute.order_id);
       if (!order) {
-        Logger.error(`Order ${dispute.order_id} não encontrada`);
+        Logger.error(`Order ${dispute.order_id} not found`);
         
         // Registrar erro no banco (se disponível)
         if (this.dbAvailable) {
@@ -100,10 +100,10 @@ export class ChargebackService {
             Logger.error(`Falha ao atualizar tags`);
           }
         } else {
-          Logger.error(`Customer não encontrado na order`);
+          Logger.error(`Customer not found in order`);
         }
       } else {
-        Logger.info(`Nenhuma mudança necessária nas tags`);
+        Logger.info(`No tag changes needed`);
       }
 
       // Registrar webhook no banco (se disponível)
@@ -132,7 +132,7 @@ export class ChargebackService {
           Logger.warn(`Falha ao registrar no banco`);
         }
       } else {
-        Logger.webhook(`Log do webhook (sem persistência):`);
+        Logger.webhook(`Webhook log (without persistence):`);
         Logger.webhook(`   Customer: ${customerName}`);
         Logger.webhook(`   Email: ${customerEmail}`);
         Logger.webhook(`   Order Name: ${orderName}`);
@@ -170,7 +170,7 @@ export class ChargebackService {
             customerEmail = order.customer.email;
           }
         } catch (orderError) {
-          Logger.warn('Não foi possível obter dados da order para o email do customer');
+          Logger.warn('Could not get order data for customer email');
         }
 
         await this.databaseService.insertErrorRecord({
