@@ -1,5 +1,6 @@
 import { WebClient } from '@slack/web-api';
 import { ShopifyDispute } from '../types/shopify';
+import { Logger } from '../utils/logger';
 
 export class SlackService {
   private client: WebClient;
@@ -22,7 +23,7 @@ export class SlackService {
   ): Promise<boolean> {
     try {
       if (!this.channelId) {
-        console.log('⚠️ SLACK_CHANNEL_ID não configurado');
+        Logger.warn('SLACK_CHANNEL_ID not configured');
         return false;
       }
 
@@ -35,15 +36,15 @@ export class SlackService {
       });
 
       if (result.ok) {
-        console.log('✅ Notificação enviada para o Slack');
+        Logger.success('Notification sent to Slack');
         return true;
       } else {
-        console.log('❌ Falha ao enviar notificação para o Slack:', result.error);
+        Logger.error(`Failed to send notification to Slack: ${result.error}`);
         return false;
       }
 
     } catch (error: any) {
-      console.error('❌ Erro ao enviar notificação para o Slack:', error.message);
+      Logger.error(`Error sending notification to Slack: ${error.message}`);
       return false;
     }
   }

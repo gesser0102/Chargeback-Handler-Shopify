@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ShopifyOrder } from "../types/shopify";
+import { Logger } from '../utils/logger';
 
 export class ShopifyService {
   private shopDomain: string;
@@ -33,9 +34,9 @@ export class ShopifyService {
       return null;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        console.log(`❌ Order ${orderId} não encontrada`);
+        Logger.error(`Order ${orderId} not found`);
       } else {
-        console.error(`❌ Erro ao buscar order ${orderId}:`, error.message);
+        Logger.error(`Error fetching order ${orderId}: ${error.message}`);
       }
       return null;
     }
@@ -62,7 +63,7 @@ export class ShopifyService {
 
       return true;
     } catch (error: any) {
-      console.error(`❌ Erro ao atualizar tags do customer ${customerId}:`, error.message);
+      Logger.error(`Error updating customer ${customerId} tags: ${error.message}`);
       return false;
     }
   }
